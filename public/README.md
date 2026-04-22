@@ -1,2 +1,3 @@
-# Questa cartella contiene i file statici per Vercel
-# Qui dentro c'è la cartella caa con tutte le immagini dei simboli.
+# Assets CAA
+Questa cartella contiene tutti i simboli per il gioco.
+Le immagini sono all'interno di caa/.
