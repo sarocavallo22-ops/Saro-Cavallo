@@ -1,6 +1,6 @@
 {
   "name": "Escape from exam: missione decollo!",
-  "description": "Un'applicazione di supporto per un laboratorio TIC inclusivo dedicato alla preparazione dell'esame di terza media, con metafora spaziale, strumenti di CAA e attività rompighiaccio.",
+  "description": "Un'applicazione per un laboratorio TIC inclusivo con metafora spaziale e strumenti di CAA (immagini incluse nella cartella public/caa).",
   "requestFramePermissions": [],
   "majorCapabilities": []
 }
