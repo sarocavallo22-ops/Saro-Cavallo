@@ -2859,7 +2859,7 @@ const Home = ({ onStart, notes, setNotes }: { onStart: (session: number) => void
       </div>
       
       <h2 className="text-5xl font-bold mb-6 tracking-tight uppercase italic flex flex-col items-center">
-        <span>Escape from exam:</span>
+        <span>LAB TIC:</span>
         <span className="text-sky-400 lowercase text-3xl mt-2">missione decollo!</span>
       </h2>
       <p className="text-xl text-slate-400 mb-12 max-w-2xl mx-auto leading-relaxed">
