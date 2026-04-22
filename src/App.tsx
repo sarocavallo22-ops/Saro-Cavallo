@@ -110,6 +110,7 @@ const SESSIONS: Session[] = [
 ];
 
 // --- Components ---
+// Updated percorsi immagini per Vercel
 
 const SURVIVAL_ITEMS = [
   { id: 'matches', name: 'Scatola di fiammiferi', icon: <AlertCircle className="w-5 h-5" />, rank: 15, comment: "Non esiste O2" },
