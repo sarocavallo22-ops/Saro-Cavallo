@@ -1,6 +1,6 @@
 {
   "name": "Escape from exam: missione decollo!",
-  "description": "Un'applicazione per un laboratorio TIC inclusivo con metafora spaziale e strumenti di CAA (immagini incluse nella cartella public/caa).",
+  "description": "App per laboratorio TIC inclusivo con metafora spaziale e CAA. Le immagini sono caricate in /public/caa per la compatibilità con Vercel.",
   "requestFramePermissions": [],
   "majorCapabilities": []
 }
