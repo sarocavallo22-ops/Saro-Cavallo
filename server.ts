@@ -297,15 +297,25 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
+    const rootPath = process.cwd();
+    
     app.use(express.static(distPath));
+    app.use(express.static(rootPath)); // Fallback for root assets
+
     app.get('*', (req, res) => {
-      // In Vercel, the file might be elsewhere, but we try to find it
-      const indexPath = path.join(distPath, 'index.html');
-      if (fs.existsSync(indexPath)) {
-        res.sendFile(indexPath);
-      } else {
-        res.status(404).send('Not Found');
+      const possiblePaths = [
+        path.join(distPath, 'index.html'),
+        path.join(rootPath, 'index.html'),
+        path.join(rootPath, 'dist', 'index.html')
+      ];
+
+      for (const indexPath of possiblePaths) {
+        if (fs.existsSync(indexPath)) {
+          return res.sendFile(indexPath);
+        }
       }
+      
+      res.status(404).send(`Not Found (Checked: ${possiblePaths.join(', ')})`);
     });
   }
 
