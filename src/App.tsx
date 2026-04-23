@@ -164,12 +164,16 @@ const StudentInput = () => {
         // Handle survival ranking submission
       } else if (mode === 'lyrics') {
         if (lyricText.trim()) {
-          await fetch('/api/lyrics', {
+          const res = await fetch('/api/lyrics', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ text: lyricText.trim(), nickname: nickname.trim() || "Anonimo" })
           });
-          setSubmitted(true);
+          const data = await res.json();
+          if (data.success) {
+            setSentRecords([{ id: data.id, text: lyricText.trim(), type: 'Segnale dallo Spazio' }]);
+            setSubmitted(true);
+          }
         }
       } else if (mode === 'discourse_map') {
         if (discourseAnswer.trim()) {
@@ -270,6 +274,42 @@ const StudentInput = () => {
     }
   };
 
+  const deleteSentRecord = async (id: string, type: string) => {
+    try {
+      let endpoint = '';
+      let payload: any = { id };
+      
+      if (type === 'Mappa del Discorso') {
+        endpoint = '/api/discourse-map/delete';
+      } else if (type === 'Segnale dallo Spazio') {
+        endpoint = '/api/lyrics/delete';
+      } else if (type === 'Cosa mi piace/non mi piace') {
+        endpoint = '/api/reflection/delete';
+        payload.type = 'canDo';
+      } else if (type === 'Quali sono i miei punti di forza') {
+        endpoint = '/api/reflection/delete';
+        payload.type = 'passion';
+      } else if (type === 'Quali esperienze porto con me') {
+        endpoint = '/api/reflection/delete';
+        payload.type = 'unique';
+      } else {
+        return; // Other types not yet handled for individual delete
+      }
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      
+      if (res.ok) {
+        setSentRecords(prev => prev.filter(r => r.id !== id));
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   if (submitted) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center bg-slate-950">
@@ -277,21 +317,32 @@ const StudentInput = () => {
         <h2 className="text-2xl font-bold mb-2">Messaggio Inviato!</h2>
         <p className="text-slate-400 mb-8">Le tue risposte sono ora in orbita nella galassia della classe.</p>
         
-        {(mode === 'reflection' || mode === 'discourse_map') && sentRecords.length > 0 && (
+        {(mode === 'reflection' || mode === 'discourse_map' || mode === 'lyrics') && sentRecords.length > 0 && (
           <div className="w-full max-w-md space-y-4 mb-8">
             <h3 className="text-sm font-bold text-purple-400 uppercase tracking-widest">Il tuo equipaggiamento:</h3>
             {sentRecords.map((r, i) => (
-              <div key={i} className="p-4 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col gap-3 text-left">
+              <div key={i} className="p-4 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col gap-3 text-left group">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase">{r.type}</span>
-                  <span className="text-xs text-slate-300 italic truncate max-w-[200px]">"{r.text}"</span>
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase block leading-none mb-1">{r.type}</span>
+                    <span className="text-sm text-slate-300 italic">"{r.text}"</span>
+                  </div>
+                  <button 
+                    onClick={() => deleteSentRecord(r.id, r.type)}
+                    className="p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-colors"
+                    title="Cancella risposta"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
-                <button 
-                  onClick={() => revealOnLim(r.id, r.type)}
-                  className="btn-primary py-2 text-sm justify-center bg-purple-600 hover:bg-purple-500"
-                >
-                  Scopri sulla LIM <Monitor className="w-4 h-4" />
-                </button>
+                {r.type !== 'Segnale dallo Spazio' && (
+                  <button 
+                    onClick={() => revealOnLim(r.id, r.type)}
+                    className="btn-primary py-2 text-sm justify-center bg-purple-600 hover:bg-purple-500"
+                  >
+                    Scopri sulla LIM <Monitor className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -869,7 +920,7 @@ const BrainstormingCloud = () => {
                   {w}
                   <button 
                     onClick={() => deleteWord('stars', i)}
-                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center shadow-lg"
+                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg border-2 border-slate-900 hover:bg-red-500 transition-colors"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -886,7 +937,7 @@ const BrainstormingCloud = () => {
                   {w}
                   <button 
                     onClick={() => deleteWord('shadows', i)}
-                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center shadow-lg"
+                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg border-2 border-slate-900 hover:bg-red-500 transition-colors"
                   >
                     <X className="w-3 h-3" />
                   </button>
@@ -964,12 +1015,12 @@ const ReflectionDisplay = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const deleteWord = async (type: 'canDo' | 'passion' | 'unique', index: number) => {
+  const deleteWord = async (type: 'canDo' | 'passion' | 'unique', id: string) => {
     try {
       await fetch('/api/reflection/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, index })
+        body: JSON.stringify({ type, id })
       });
       fetchData();
     } catch (err) {
@@ -986,7 +1037,11 @@ const ReflectionDisplay = () => {
       >
         <div className="flex items-center justify-between">
           <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">Inviato da: {item.nickname}</span>
-          <button onClick={() => deleteWord(type, index)} className="opacity-0 group-hover:opacity-100 text-red-400 transition-opacity">
+          <button 
+            onClick={() => deleteWord(type, item.id)} 
+            className="text-red-400 hover:text-red-300 transition-colors p-1 bg-red-500/10 rounded-md border border-red-500/20"
+            title="Elimina"
+          >
             <Trash2 className="w-3 h-3" />
           </button>
         </div>
@@ -2546,7 +2601,8 @@ const SpaceSignals = () => {
                       </span>
                       <button 
                         onClick={() => deleteLyric(lyric.id)}
-                        className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-300 transition-opacity"
+                        className="text-red-400/50 hover:text-red-400 transition-colors bg-red-500/10 p-1.5 rounded-lg border border-red-500/20"
+                        title="Elimina"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -2657,7 +2713,8 @@ const DiscourseMapDisplay = () => {
                   
                   <button 
                     onClick={() => deleteItem(item.id)}
-                    className="absolute -top-2 -right-2 p-1 bg-red-900/80 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute -top-2 -right-2 p-1.5 bg-red-600 text-white rounded-full shadow-lg hover:bg-red-500 transition-colors border-2 border-slate-900"
+                    title="Elimina risposta"
                   >
                     <Trash2 className="w-3 h-3" />
                   </button>

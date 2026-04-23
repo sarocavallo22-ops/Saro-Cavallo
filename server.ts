@@ -143,14 +143,21 @@ async function startServer() {
   });
 
   app.post("/api/reflection/delete", (req, res) => {
-    const { type, index } = req.body;
+    const { type, index, id } = req.body;
     if (type === "canDo" || type === "passion" || type === "unique") {
-      if (typeof index === "number" && index >= 0 && index < reflectionData[type].length) {
-        reflectionData[type].splice(index, 1);
-        return res.json({ success: true, data: reflectionData[type] });
+      const list = reflectionData[type];
+      if (id) {
+        const idx = list.findIndex(i => i.id === id);
+        if (idx !== -1) {
+          list.splice(idx, 1);
+          return res.json({ success: true });
+        }
+      } else if (typeof index === "number" && index >= 0 && index < list.length) {
+        list.splice(index, 1);
+        return res.json({ success: true, data: list });
       }
     }
-    res.status(400).json({ success: false, message: "Invalid data" });
+    res.status(400).json({ success: false, message: "Invalid data or item not found" });
   });
 
   app.get("/api/lyrics", (req, res) => {
@@ -167,7 +174,7 @@ async function startServer() {
       };
       lyricsData.push(newItem);
       if (lyricsData.length > 50) lyricsData.shift();
-      return res.json({ success: true });
+      return res.json({ success: true, id: newItem.id });
     }
     res.status(400).json({ success: false });
   });
